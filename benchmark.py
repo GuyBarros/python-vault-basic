@@ -229,7 +229,7 @@ transitHMAC("example","hashify me","sha2-512")
 	# timeit.repeat statement
 	times = timeit.repeat(setup = SETUP_CODE,
 						stmt = TEST_CODE,
-						repeat = 5,
+						repeat = repeat_count,
 						number = execute_count)
 
 	# printing minimum exec. time
