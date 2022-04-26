@@ -7,40 +7,48 @@ import requests
 import os
 import pprint
 import base64
+import time
+import timeit
+from datetime import datetime, timedelta
 pp = pprint.PrettyPrinter()
 
-VAULT_ADDR =  os.environ.get('VAULT_ADDR', 'http://localhost:8200')
-VAULT_TOKEN =  os.environ.get('VAULT_TOKEN', 'root')
-VAULT_NAMESPACE = os.environ.get('VAULT_TOKEN', '')
+# VAULT_ADDR =  os.environ.get('VAULT_ADDR', 'http://localhost:8200')
+# VAULT_TOKEN =  os.environ.get('VAULT_TOKEN', 'root')
+# VAULT_NAMESPACE = os.environ.get('VAULT_NAMESPACE', '')
+
+VAULT_ADDR =  os.environ.get('VAULT_ADDR', 'https://do-not-delete-ever.vault.92607e45-319d-44bd-9879-284b72f492b8.aws.hashicorp.cloud:8200')
+VAULT_TOKEN =  os.environ.get('VAULT_TOKEN', 's.veV3nve4Cdy3ytDP4Gglxiuk.i0d6T')
+VAULT_NAMESPACE = os.environ.get('VAULT_NAMESPACE', 'admin')
 
 client = hvac.Client(
     url=VAULT_ADDR,
     token=VAULT_TOKEN,
     namespace=VAULT_NAMESPACE,
-    verify=False,
+    # verify=False,
     )
 
-def createStaticSecret(path,key,value):
+def createStaticSecret(mount_point,path,key,value):
     response = client.secrets.kv.v2.create_or_update_secret(
     path=path,
+    mount_point=mount_point,
     secret=dict({key:value}),
     )
-    if (response.status_code == 204):
+    if (response):
         pp.pprint("Static Secret created succesfully")
-    else:    
+    else:
         pp.pprint(f"Static Secret not created, something went wrong. response : {response}")
 
 
-def getKV(path,key):
-    read_response = client.secrets.kv.read_secret_version(path=path)
+def getKV(mount_point,path,key):
+    read_response = client.secrets.kv.read_secret_version(path=path,mount_point=mount_point)
     secret = read_response['data']['data'][key]
     pp.pprint(f"Value under path {path}/{key} is {secret}")
 def transitCreateKey(name,convergent_encryption,derived,exportable,allow_plaintext_backup,key_type):
-    
+
     response = client.secrets.transit.create_key(name,convergent_encryption,derived,exportable,allow_plaintext_backup,key_type)
     if (response.status_code == 204):
         pp.pprint("Key created successfully")
-    else:    
+    else:
         pp.pprint(f"Key creation failed. response : {response}")
 
 def transitEncrypt(key_name,plaintext):
@@ -90,18 +98,31 @@ def transitHMAC(key_name,hash_input, algorithm):
     )
     pp.pprint(f"HMAC'd data is: {generate_hmac_response['data']['hmac']}")
 
+def getMetrics():
+    url = VAULT_ADDR+ '/v1/sys/metrics?format=prometheus'
+    headers = {'X-Vault-Token': VAULT_TOKEN}
+    r = requests.get(url, headers=headers)
+    pp.pprint(r.text)
+
+
 #Main just has the calls to the above methods, comment out as needed
 def main():
-   createStaticSecret("Python/Test","Foo","Bar")
-   getKV("Python/Test","Foo")
-   transitCreateKey("example",False,False,True,True,"rsa-2048")
-   ciphertext = transitEncrypt("example","A very secret Secrets that secrets secretly")
-   transitDecrypt("example",ciphertext)
-   signature = transitSign("example","A very secure signature")
-   transitVerify("example","A very secure signature",signature)
-   transitHMAC("example","hashify me","sha2-512")
+
+    pp.pprint(f"HVAC Client Initialised?: {client.is_authenticated()}")
+   # createStaticSecret("Python","Test","Foo","MamaMia")
+   # getKV("Python","Test","Foo")
+   # getMetrics()
+
+    transitCreateKey("example",False,False,True,True,"rsa-2048")
+    ciphertext = transitEncrypt("example","A very secret Secrets that secrets secretly")
+    transitDecrypt("example",ciphertext)
+    signature = transitSign("example","A very secure signature")
+    transitVerify("example","A very secure signature",signature)
+    transitHMAC("example","hashify me","sha2-512")
+
 
 
 
 if __name__ == '__main__':
     main()
+
