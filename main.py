@@ -16,9 +16,9 @@ pp = pprint.PrettyPrinter()
 # VAULT_TOKEN =  os.environ.get('VAULT_TOKEN', 'root')
 # VAULT_NAMESPACE = os.environ.get('VAULT_NAMESPACE', '')
 
-VAULT_ADDR =  os.environ.get('VAULT_ADDR', 'https://do-not-delete-ever.vault.92607e45-319d-44bd-9879-284b72f492b8.aws.hashicorp.cloud:8200')
-VAULT_TOKEN =  os.environ.get('VAULT_TOKEN', 's.veV3nve4Cdy3ytDP4Gglxiuk.i0d6T')
-VAULT_NAMESPACE = os.environ.get('VAULT_NAMESPACE', 'admin')
+VAULT_ADDR =  os.environ.get('VAULT_ADDR', '')
+VAULT_TOKEN =  os.environ.get('VAULT_TOKEN', '')
+VAULT_NAMESPACE = os.environ.get('VAULT_NAMESPACE', '')
 
 client = hvac.Client(
     url=VAULT_ADDR,
